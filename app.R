@@ -34,7 +34,7 @@ test_dt_multi <- data.table::data.table(
 ui <- fluidPage(
   
   tabsetPanel(type = "tabs",
-              tabPanel("Single Question Drilldown", 
+              tabPanel("Single Question Fast facts", 
                        ## build input for dynamic dimension selection
                        ## names(test_dt)[-1] is because the first col is question, which cannot be used as dimensions
                        selectizeInput("dimension_sel", 
