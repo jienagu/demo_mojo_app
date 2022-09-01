@@ -1,0 +1,48 @@
+---
+title: "Demo Mojo"
+author: "Jiena McLellan"
+format: html
+server: shiny
+---
+
+
+```{r setup, warning=FALSE, echo=FALSE, eval=TRUE, include=FALSE}
+library(shiny)
+library(dataMojo)
+library(reactable)
+library(dplyr)
+test_dt <- data.table::data.table(
+  Question = sample(c("Good", "OK", "Bad"), 90, replace = TRUE),
+  Gender = c(rep("Women", 40), rep("All Others", 50)),
+  Dept = c(rep("HR", 20), rep("IT", 50), rep("Finance",20)),
+  Location = c(rep("Atlanta", 40), rep("New York", 20), rep("Tampa",15), rep("Beijing", 7), rep("Shanghai", 8)),
+  Region = c(rep("US", 75), rep("China", 15))
+)
+```
+
+```{r}
+selectizeInput("dimension_sel", 
+                                      label = "Please select dimension(s):", 
+                                      choices = names(test_dt)[-1],
+                                      multiple = TRUE,
+                                      options = list(plugins = list('remove_button', 'drag_drop'))
+)
+uiOutput("drilldown_table")
+
+```
+
+```{r}
+#| context: server
+
+  output$drilldown_table <- renderUI({
+    output_df <- dataMojo::pivot_percent_at(test_dt, 
+                                               question_col = c("Question"), aggregated_by_cols = input$dimension_sel)|> 
+      dplyr::rename_at(vars( contains("rate") ), list( ~paste(sub(".rate[0-9]value", " ", .), "(%)") ) ) |> 
+      dplyr::rename_at(vars( contains("count") ), list( ~paste(sub(".count[0-9]value", " ", .), "(count)") ) ) |> 
+      dplyr::rename_at(vars( contains("total") ), list( ~paste(sub(".total", " ", .), "total response") ) )
+    
+    reactable(
+      output_df
+    )
+  })
+```
